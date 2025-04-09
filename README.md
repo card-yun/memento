@@ -7,6 +7,7 @@
 - Set-ExecutionPolicy -Scope CurrentUser ("RemoteSigned")
 
 - npx expo init [ProjectName]
+  -- npx create-expo-app [ProjectName]
 - npx expo login
 
   ...Enter personal info

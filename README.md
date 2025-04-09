@@ -8,7 +8,7 @@
 
 - npx expo init [ProjectName]
 
-( npx create-expo-app [ProjectName] )
+( Choose "blank" one ! )
 
 - npx expo login
 

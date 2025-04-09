@@ -5,6 +5,7 @@ import { View, StyleSheet, Text } from "react-native";
 export default function App() {
   return (
     <View style={styles.container}>
+      {/*[JSX주석]<StatusBar style="light" />*/}
       <View style={styles.city}>
         <Text>Seoul</Text>
       </View>

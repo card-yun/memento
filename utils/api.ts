@@ -1,5 +1,5 @@
 import axios from "axios";
-import { storeAccessToken } from "./token";
+import { storeAccessToken, loadAccessToken, clearAccessToken, getRefreshToken } from "./token";
 
 const BASE_URL = "https://coolchick.site/"; // 백엔드 서버 주소
 
@@ -32,6 +32,7 @@ export type Day = {
   todos: RawTodo[];
 };
 
+
 let accessToken: string | null = null;
 
 api.interceptors.request.use((config) => {
@@ -59,10 +60,9 @@ export async function login(email: string, password: string) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
-    const token = response.data.access_token;
+    const {access_token, refresh_token} = response.data;
 
-    setAccessToken(token);
-    await storeAccessToken(token);
+    await storeAccessToken(access_token, refresh_token);
     return response.data;
   } catch (err: any) {
     console.log(
@@ -73,6 +73,51 @@ export async function login(email: string, password: string) {
     throw err;
   }
 }
+// 리프레시 함수
+export async function refreshAccessToken(refreshToken: string) {
+  try {
+    const response = await api.post("/api/auth/refresh", { refresh_token: refreshToken });
+    const { access_token, refresh_token } = response.data; // ✅ 둘 다 받을 수 있음
+    await storeAccessToken(access_token, refresh_token);
+    return response.data;
+  } catch (err) {
+    await clearAccessToken();
+    throw err;
+  }
+}
+
+// api 인터프리터: access_token 만료 시 refresh 시도도
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    const originalRequest = error.config;
+
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      // 저장된 refresh_token 로딩
+      const refreshToken  = await getRefreshToken();
+      if (refreshToken) {
+        try {
+          // refresh 요청
+          const refreshResponse = await refreshAccessToken(refreshToken);
+          const { access_token } = refreshResponse;
+
+          originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
+          return api(originalRequest);
+        } catch (refreshErr) {
+          // refresh도 실패: 로그아웃 처리
+          await clearAccessToken();
+          // 추가: 로그아웃 상태 전환
+        }
+      } else {
+        // refresh_token 없음: 로그아웃 처리
+        await clearAccessToken();
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ✅ 회원가입 요청
 export async function registerUser(user: {

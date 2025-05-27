@@ -21,6 +21,7 @@ import {
 } from "../../utils/notification";
 
 import { deleteUser } from "../../utils/api";
+import { clearAccessToken } from "../../utils/token";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -59,7 +60,7 @@ export default function setting() {
         text: "네",
         onPress: async () => {
           try {
-            await AsyncStorage.removeItem("access_token"); // ✅ access token 제거
+            await clearAccessToken();      // ✅ access token 제거
             router.replace("../login/login"); // ✅ 홈이 아닌 login으로 이동
           } catch (e) {
             Alert.alert("오류", "로그아웃에 실패했습니다.");

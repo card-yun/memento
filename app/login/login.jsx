@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useDarkMode } from "../../contexts/DarkModeContext.jsx";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAccessToken } from "../../utils/api";
+import {storeAccessToken} from "../../utils/token";
 
 export default function Login() {
   const { isDarkMode } = useDarkMode();
@@ -23,6 +24,22 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+    (async () => {
+      const token = await AsyncStorage.getItem("access_token");
+      if (token) {
+        setAccessToken(token);   // 헤더에 바로 세팅
+        router.replace("/home"); // 홈으로 이동!
+      } else {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) return <View><Text>자동 로그인 중...</Text></View>;
+
   const Login = async () => {
     if (!email || !password) {
       Alert.alert("알림", "이메일과 비밀번호를 모두 입력해주세요.");
@@ -34,13 +51,11 @@ export default function Login() {
       Alert.alert("로그인 성공!");
       console.log("✅ 로그인 성공");
 
-      // 로그인 직후 토근 저장을 기다림
-      // ✅ 토큰 저장
-      await AsyncStorage.setItem("access_token", res.access_token);
-      const testToken = await AsyncStorage.getItem("access_token");
+      await storeAccessToken(res.access_token, res.refresh_token);
 
       setAccessToken(res.access_token);
       router.replace("/home");
+      
     } catch (err) {
       console.log("❌ 로그인 전체 실패:", err);
       Alert.alert(

@@ -14,7 +14,8 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from "../../../constants/Colors.ts";
 import { useDarkMode } from "../../../contexts/DarkModeContext.jsx";
 import { format } from "date-fns";
@@ -37,18 +38,34 @@ export default function DiaryEditor() {
 
   const router = useRouter();
   if (!router) return null;
-  const params = useLocalSearchParams();
   const today = new Date();
   today.setHours(0, 0, 0, 0); // 오늘 날짜의 시간을 00:00:00으로 설정
 
-  useEffect(() => {
-    if (params?.date) {
-      const parsedDate = new Date(params.date);
-      if (!isNaN(parsedDate)) {
-        setSelectedDate(parsedDate);
+
+    // 임시저장 데이터 있으면 불러오기
+    const fetchDiary = async (date) => {
+      setIsLoading(true);
+      const formattedDate = format(date, "yyyy-MM-dd");
+      try {
+        const res = await getDiaryByDate(formattedDate);
+        if (res==null) setDiaryText("");
+        else setDiaryText(res?.content ?? "");
+      } catch (err) {
+        setDiaryText("");
       }
-    }
-  }, [params?.date]);
+      setIsLoading(false);
+    };
+
+    const params = useLocalSearchParams();
+    useEffect(() => {
+      if (params?.date) {
+        const parsedDate = new Date(params.date);
+        if (!isNaN(parsedDate)) {
+          setSelectedDate(parsedDate);
+          fetchDiary(parsedDate);
+        }
+      }
+    }, [params?.date]);
 
   // 키보드 이벤트 리스너 추가
   useEffect(() => {
@@ -158,22 +175,7 @@ export default function DiaryEditor() {
     }
   };
 
-  // 임시저장 데이터 있으면 불러오기
-  useEffect(() => {
-    const fetchDiary = async () => {
-      setIsLoading(true);
-      const formattedDate = format(selectedDate, "yyyy-MM-dd");
-      try {
-        const res = await getDiaryByDate(formattedDate);
-        if (!res) setDiaryText("");
-        else setDiaryText(res?.content ?? "");
-      } catch (err) {
-        setDiaryText("");
-      }
-      setIsLoading(false);
-    };
-    fetchDiary();
-  }, [selectedDate]);
+
 
   return (
     <View style={styles.main}>

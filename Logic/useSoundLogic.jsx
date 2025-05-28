@@ -1,10 +1,9 @@
 import { Alert } from "react-native";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { format } from "date-fns";
 import { getDiaryByDate } from "../utils/diary";
-import { SERVER_URL } from "../utils/api";
 
 const MAX_RECORDING_SECONDS = 300; 
 

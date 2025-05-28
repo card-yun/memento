@@ -436,7 +436,7 @@ export default function DiaryEditor() {
                 )
               ) : (
                 <TouchableOpacity
-                  onPress={handleStartRecording}
+                  onPress={() => handleStartRecording(selectedDate)}
                   style={styles.recordButton}
                 >
                   <Ionicons name="mic" size={32} color="#fff" />

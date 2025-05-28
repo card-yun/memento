@@ -39,9 +39,9 @@ export default function Diary() {
         setShowDiaryModal(true);
         return;
       }
-      if (res?.day?.emotion) {
+      if (res.day.emotion) {
         router.push({ pathname: "/diary/DiaryFinal", params: { date: formattedDate } });
-      } else if (res?.day?.audio_path && res?.day?.audio_path !== "empty") {
+      } else if ((res.audio_path) && (res.audio_path !== "empty")) {
         router.push({ pathname: "/diary/audioDiary", params: { date: formattedDate } });
       } else {
         router.push({ pathname: "/diary/textDiary", params: { date: formattedDate } });

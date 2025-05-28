@@ -296,8 +296,6 @@ const pausePlaying = async () => {
   }
 };
 
-
-
     return {
       isRecording, setIsRecording,
       isPaused, setIsPaused,
@@ -311,7 +309,7 @@ const pausePlaying = async () => {
       isLoading, setIsLoading,
       currentPosition, setCurrentPosition,
       handleStartRecording,
-      startRecording, pauseRecording,
+      startRecording, pauseRecording, resumeRecording,
       playRecording, pausePlaying, handleStopRecording
   };
 };

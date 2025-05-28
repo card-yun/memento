@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from "../../../constants/Colors";
 import { useDarkMode } from "../../../contexts/DarkModeContext.jsx";
 import {
@@ -107,6 +108,21 @@ export default function DiaryFinal({ route }) {
   const showDatepicker = () => {
     router.push("/diary");
   };
+
+  
+  useFocusEffect(
+    useCallback(() => {
+    // 포커스(들어옴)일 때는 아무것도 안 함
+    return () => {
+      // 포커스 아웃(나감)일 때
+      if (sound) {
+        sound.unloadAsync().catch(() => {});
+        setSound(null);
+        setIsPlaying(false);
+      }
+    };
+  }, [sound])
+);
 
   // 시간 포맷팅 함수 (00:00 형식)
   function formatTime(sec) {

@@ -10,7 +10,8 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from "../../../constants/Colors.ts";
 import { useDarkMode } from "../../../contexts/DarkModeContext.jsx";
 import { format } from "date-fns";
@@ -122,6 +123,20 @@ export default function DiaryEditor() {
       if (sound) sound.unloadAsync();
     };
   }, [recordingUri]);
+
+  useFocusEffect(
+    useCallback(() => {
+    // 포커스(들어옴)일 때는 아무것도 안 함
+    return () => {
+      // 포커스 아웃(나감)일 때
+      if (sound) {
+        sound.unloadAsync().catch(() => {});
+        setSound(null);
+        setIsPlaying(false);
+      }
+    };
+  }, [sound])
+);
 
   // 시간 포맷팅 함수 (00:00 형식)
   function formatTime(sec) {
@@ -327,7 +342,7 @@ export default function DiaryEditor() {
     setShowRecordingView(false)
     
     if(isPlaying)
-      pausePlaying();
+      pausePlaying(true);
   }
 
   return (

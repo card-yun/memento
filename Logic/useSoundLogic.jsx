@@ -1,5 +1,5 @@
 import { Alert } from "react-native";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import { format } from "date-fns";
@@ -19,6 +19,14 @@ export const useSoundLogic = () => {
   const [timer, setTimer] = useState(null); // 녹음 시간 측정용 타이머
   const [isLoading, setIsLoading] = useState(false); // 로딩 상태
   const [currentPosition, setCurrentPosition] = useState(0);
+
+  const timerRef = useRef(null);
+  const recordingRef = useRef(null);
+
+    // recording 값 최신화
+  useEffect(() => {
+    recordingRef.current = recording;
+  }, [recording]);
 
 const clearRecordingResources = async () => {
   try {
@@ -42,17 +50,28 @@ const clearRecordingResources = async () => {
 };
 
   // 눅음 중지 버튼
-  const handleStopRecording = async (selectedDate) => {
-  if (recording && (isRecording || isPaused)) {
-    clearInterval(timer);
+  const handleStopRecording = async (selectedDate = new Date()) => {
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        setTimer(null);
+      }
     try {
-      await recording.stopAndUnloadAsync();
-      const tempUri = await recording.getURI();
+      const rec = recordingRef.current;
+      await rec.stopAndUnloadAsync();
+      const tempUri = await rec.getURI();
 
       const formattedDate = format(selectedDate, "yyyy-MM-dd");
       const res = await getDiaryByDate(formattedDate);
       const diaryId = res ? res.id : `temp_${formattedDate}`;
       const localUri = FileSystem.cacheDirectory + `voice_${diaryId}.wav`;
+      
+      // 기존 오디오 사운드 언로드(필요시)
+      if (sound) {
+        await sound.unloadAsync();
+        setSound(null);
+      }
+
       if (tempUri !== localUri) {
         // 기존 파일 삭제
         const fileInfo = await FileSystem.getInfoAsync(localUri);
@@ -66,20 +85,16 @@ const clearRecordingResources = async () => {
       setIsPaused(false);
       setHasRecording(true);
       setRecording(null);
+      recordingRef.current = null;
 
-      // 기존 오디오 사운드 언로드(필요시)
-      if (sound) {
-        await sound.unloadAsync();
-        setSound(null);
-      }
 
     } catch (err) {
       console.log('녹음 정지 오류:', err);
     }
-  }
+  
 };
 
- const handleStartRecording = async () => {
+ const handleStartRecording = async (selectedDate = new Date()) => {
   console.log("녹음버튼 눌림");
   
   // 이미 녹음된 파일이 있는 경우 확인 창 표시
@@ -89,15 +104,15 @@ const clearRecordingResources = async () => {
       "이전 녹음이 삭제되고 새로 녹음됩니다.",
       [
         { text: "취소", style: "cancel" },
-        { text: "재녹음", style: "destructive", onPress: startRecording }
+        { text: "재녹음", style: "destructive", onPress: () => startRecording(selectedDate) }
       ]
     );
   } else {
-    startRecording();
+    startRecording(selectedDate);
   }
 };
 
-const startRecording = async () => {
+const startRecording = async (selectedDate = new Date()) => {
   try {
     console.log("녹음 시작 준비...");
     await clearRecordingResources();
@@ -181,23 +196,24 @@ const startRecording = async () => {
       
       // 상태 업데이트
       setRecording(recordingResult.recording);
+      recordingRef.current = recordingResult.recording;
       setIsRecording(true);
       
       // 타이머 시작
-      const id = setInterval(() => {
-        setRecordingDuration(prev => {
-          // 5분(300초) 제한: 자동 중지
-          if (prev + 1 >= MAX_RECORDING_SECONDS) {
-            clearInterval(id);
-            setTimer(null);
-            handleStopRecording(); // 자동으로 녹음 정지 함수 호출
-            Alert.alert("알림", "최대 5분까지만 녹음할 수 있습니다.");
-            return prev; // 바로 리턴 (더 이상 증가 안 함)
-          }
-          return prev + 1;
-        });
+            let tick = 0;
+      timerRef.current = setInterval(() => {
+        tick += 1;
+        setRecordingDuration(tick);
+        if (tick >= MAX_RECORDING_SECONDS) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          setTimer(null);
+          // **녹음 상태에 관계 없이 무조건 중지 시도**
+          handleStopRecording(selectedDate);
+          Alert.alert("알림", "최대 5분까지만 녹음할 수 있습니다.");
+        }
       }, 1000);
-      setTimer(id);
+      setTimer(timerRef.current);
       
       console.log("녹음 시작 성공!");
     } else {
@@ -264,6 +280,11 @@ const resumeRecording = async () => {
     }
 
     if (!uri) return;
+        // **재생 전 이전 sound 언로드 (꼭 필요!)**
+    if (sound) {
+      await sound.unloadAsync();
+      setSound(null);
+    }
 
     console.log("재생 직전 uri:", uri);
     const { sound } = await Audio.Sound.createAsync({ uri });

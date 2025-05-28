@@ -217,6 +217,7 @@ export default function Stat() {
 
             {/* 연간 감정 트래커 표 */}
             <View style={styles.tableContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator>
               <View>
                 {/* 표 헤더 (월) */}
                 <View style={styles.tableRow}>
@@ -290,6 +291,7 @@ export default function Stat() {
                   </View>
                 ))}
               </View>
+              </ScrollView>
             </View>
           </>
         )}

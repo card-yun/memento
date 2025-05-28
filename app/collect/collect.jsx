@@ -103,10 +103,10 @@ export default function Collect() {
                   },
                 ]}
               >
-                {/* 다이어리 내용 (최대 5줄) */}
+                {/* 다이어리 내용 (최대 4줄) */}
                 <View style={styles.leftContent}>
                   <Text
-                    numberOfLines={5}
+                    numberOfLines={4}
                     ellipsizeMode="tail"
                     style={styles.contentText}
                   >

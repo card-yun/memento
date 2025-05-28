@@ -323,6 +323,13 @@ export default function DiaryEditor() {
     );
   };
 
+  const closeAudio= async () => {
+    setShowRecordingView(false)
+    
+    if(isPlaying)
+      pausePlaying();
+  }
+
   return (
     <View style={styles.main}>
       <StatusBar style="auto" />
@@ -366,7 +373,7 @@ export default function DiaryEditor() {
       {showRecordingView ? (
         <View style={styles.recordingCard}>
           <View style={styles.recordingHeader}>
-            <TouchableOpacity onPress={() => setShowRecordingView(false)}>
+            <TouchableOpacity onPress={closeAudio}>
               <Ionicons name="close" size={24} color="#555" />
             </TouchableOpacity>
             <Text style={styles.recordingTimer}>

@@ -1,5 +1,10 @@
 import axios from "axios";
-import { storeAccessToken, loadAccessToken, clearAccessToken, getRefreshToken } from "./token";
+import {
+  storeAccessToken,
+  loadAccessToken,
+  clearAccessToken,
+  getRefreshToken,
+} from "./token";
 
 const BASE_URL = "https://coolchick.site/"; // 백엔드 서버 주소
 
@@ -32,7 +37,6 @@ export type Day = {
   todos: RawTodo[];
 };
 
-
 let accessToken: string | null = null;
 
 api.interceptors.request.use((config) => {
@@ -60,7 +64,7 @@ export async function login(email: string, password: string) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
-    const {access_token, refresh_token} = response.data;
+    const { access_token, refresh_token } = response.data;
 
     await storeAccessToken(access_token, refresh_token);
     return response.data;
@@ -76,7 +80,9 @@ export async function login(email: string, password: string) {
 // 리프레시 함수
 export async function refreshAccessToken(refreshToken: string) {
   try {
-    const response = await api.post("/api/auth/refresh", { refresh_token: refreshToken });
+    const response = await api.post("/api/auth/refresh", {
+      refresh_token: refreshToken,
+    });
     const { access_token, refresh_token } = response.data; // ✅ 둘 다 받을 수 있음
     await storeAccessToken(access_token, refresh_token);
     return response.data;
@@ -88,22 +94,26 @@ export async function refreshAccessToken(refreshToken: string) {
 
 // api 인터프리터: access_token 만료 시 refresh 시도도
 api.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       // 저장된 refresh_token 로딩
-      const refreshToken  = await getRefreshToken();
+      const refreshToken = await getRefreshToken();
       if (refreshToken) {
         try {
           // refresh 요청
           const refreshResponse = await refreshAccessToken(refreshToken);
           const { access_token } = refreshResponse;
 
-          originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
+          originalRequest.headers["Authorization"] = `Bearer ${access_token}`;
           return api(originalRequest);
         } catch (refreshErr) {
           // refresh도 실패: 로그아웃 처리
@@ -181,6 +191,9 @@ export async function sendEmailVerificationCode(email: string) {
     );
     return res.data.message || res.data; // ex: "인증번호가 전송되었습니다"
   } catch (err: any) {
+    if (err.response?.status === 404) {
+      throw new Error("해당 이메일은 가입되어 있지 않습니다.");
+    }
     throw new Error(err.response?.data?.detail || "인증번호 전송 실패");
   }
 }

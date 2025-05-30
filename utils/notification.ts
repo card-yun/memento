@@ -1,57 +1,54 @@
-// utils/notification.ts
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 
-// 권한 요청 + 토큰 등록
 export async function registerForPushNotificationsAsync() {
-  console.log("🟡 푸쉬 알림 등록 함수 진입");
-
   if (!Device.isDevice) {
-    alert("❌ 에뮬레이터에서는 푸쉬 알림이 작동하지 않습니다.");
-    console.warn("❌ 에뮬레이터에서는 푸쉬 알림이 작동하지 않습니다.");
+    alert("❌ 에뮬레이터에서는 푸시 알림이 작동하지 않습니다.");
     return null;
   }
 
-  if (Device.isDevice) {
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    console.log("🔍 기존 권한 상태:", existingStatus);
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
 
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-      console.log("🔄 새로 요청한 권한 상태:", finalStatus);
-    }
-
-    if (finalStatus !== "granted") {
-      alert("푸쉬 알림 권한이 거부되었습니다.");
-      return;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log("Expo Push Token:", token);
-    return token;
-  } else {
-    alert("푸쉬 알림은 실제 기기에서만 작동합니다.");
+  if (existingStatus !== "granted") {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
   }
+
+  if (finalStatus !== "granted") {
+    alert("푸시 알림 권한이 거부되었습니다.");
+    return null;
+  }
+
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+  console.log("✅ Expo Push Token:", token);
+  return token;
 }
 
-// 원하는 시간에 알림 예약
 export async function scheduleDiaryNotification(hour: number, minute: number) {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
 
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "✍️ 일기 알림",
-      body: "하루를 정리할 시간이에요!",
-      sound: "default",
-    },
-    trigger: {
-      hour,
-      minute,
-      repeats: true,
-    } as any,
-  });
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "✍️ 일기 알림",
+        body: "하루를 정리할 시간이에요!",
+        sound: "default",
+      },
+      trigger: {
+        // ✅ CalendarTriggerInput 형태로 작성해야 오류 없음
+        // enum 형태. string아니고.
+        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+        hour,
+        minute,
+        second: 0,
+        repeats: true,
+      },
+    });
+
+    console.log(`✅ 알림이 매일 ${hour}시 ${minute}분에 예약됨`);
+  } catch (error) {
+    console.error("❌ 알림 예약 중 오류:", error);
+    throw error;
+  }
 }

@@ -60,7 +60,10 @@ export default function FindPW() {
         `인증번호가 발송되었습니다.${"\n"}인증번호를 입력해주세요.`
       ); //send_code
     } catch (err) {
-      Alert.alert("실패", "인증번호 발송에 실패했습니다."); //err.message
+      Alert.alert(
+        "실패",
+        "가입된 이메일이 아닙니다." || "인증번호 발송에 실패했습니다."
+      );
     }
   };
 

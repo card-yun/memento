@@ -364,7 +364,10 @@ export default function DiaryEditor() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
         <View
           style={[
             styles.diaryDiv,
@@ -377,10 +380,11 @@ export default function DiaryEditor() {
         >
           <TextInput
             placeholder="하단의 마이크 버튼을 클릭해 음성을 녹음해주세요.."
-            style={styles.divText}
+            style={[styles.divText, { minHeight: 100 }]}
             editable={false}
             multiline
             value={diaryText}
+            scrollEnabled={true}
           />
         </View>
       </ScrollView>
@@ -554,7 +558,6 @@ const styles = StyleSheet.create({
   },
   diaryDiv: {
     borderRadius: 10,
-    height: "80%",
     padding: 10,
     borderWidth: 0.5,
     borderColor: "rgba(158, 150, 150, .5)",
@@ -564,7 +567,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "roboto",
     fontWeight: "400",
-    height: "90%",
     textAlignVertical: "top",
   },
   container_1: {

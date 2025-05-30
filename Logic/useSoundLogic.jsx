@@ -19,9 +19,11 @@ export const useSoundLogic = () => {
   const [timer, setTimer] = useState(null); // 녹음 시간 측정용 타이머
   const [isLoading, setIsLoading] = useState(false); // 로딩 상태
   const [currentPosition, setCurrentPosition] = useState(0);
+  const [startTime, setStartTime] = useState(null);
 
   const timerRef = useRef(null);
   const recordingRef = useRef(null);
+  
 
     // recording 값 최신화
   useEffect(() => {
@@ -198,22 +200,23 @@ const startRecording = async (selectedDate = new Date()) => {
       setRecording(recordingResult.recording);
       recordingRef.current = recordingResult.recording;
       setIsRecording(true);
-      
+    
       // 타이머 시작
-            let tick = 0;
+      setStartTime(Date.now());
+      const localStartTime = Date.now();
       timerRef.current = setInterval(() => {
-        tick += 1;
-        setRecordingDuration(tick);
-        if (tick >= MAX_RECORDING_SECONDS) {
-          clearInterval(timerRef.current);
-          timerRef.current = null;
-          setTimer(null);
-          // **녹음 상태에 관계 없이 무조건 중지 시도**
-          handleStopRecording(selectedDate);
-          Alert.alert("알림", "최대 5분까지만 녹음할 수 있습니다.");
-        }
-      }, 1000);
-      setTimer(timerRef.current);
+        if (!startTime) return;
+        const elapsed = Math.floor((Date.now() - localStartTime) / 1000);
+        setRecordingDuration(elapsed);
+
+        if (elapsed >= MAX_RECORDING_SECONDS) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        setRecordingDuration(MAX_RECORDING_SECONDS); // 5:00에서 멈추게
+        handleStopRecording(selectedDate); // 녹음 종료
+      }
+      }, 500);
+
       
       console.log("녹음 시작 성공!");
     } else {

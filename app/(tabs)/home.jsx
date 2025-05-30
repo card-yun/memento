@@ -86,9 +86,9 @@ export default function Calendar() {
         router.push("/diary");
         return;
       }
-      if (res?.day?.emotion) {
+      if (res.day.emotion) {
         router.push({ pathname: "/diary/DiaryFinal", params: { date: formattedDate } });
-      } else if (res?.day?.audio_path) {
+      } else if  ((res.audio_path) && (res.audio_path !== "empty")) {
         router.push({ pathname: "/diary/audioDiary", params: { date: formattedDate } });
       } else {
         router.push({ pathname: "/diary/textDiary", params: { date: formattedDate } });

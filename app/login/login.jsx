@@ -84,6 +84,7 @@ export default function Login() {
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
+          maxLength={40}
         />
         <TextInput
           style={[
@@ -94,6 +95,7 @@ export default function Login() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          maxLength={20}
         />
         <TouchableOpacity
           style={[

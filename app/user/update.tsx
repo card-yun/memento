@@ -310,6 +310,7 @@ const styles = StyleSheet.create({
     fontFamily: "roboto",
     fontWeight: "400",
     flex: 1,
+    minHeight: 40,
   },
 
   button: {

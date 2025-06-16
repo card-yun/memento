@@ -558,6 +558,7 @@ const styles = StyleSheet.create({
   },
   diaryDiv: {
     borderRadius: 10,
+    flex: 1,
     padding: 10,
     borderWidth: 0.5,
     borderColor: "rgba(158, 150, 150, .5)",
